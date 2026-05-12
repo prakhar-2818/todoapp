@@ -16,7 +16,7 @@ function App() {
       return;
     }
     setLoading(true);
-    await axios.post("https://todoapp-backend-w7ki.onrender.com/", { title });
+    await axios.post("https://todoapp-backend-w7ki.onrender.com", { title });
     setTitle("");
     await loadTodos();
     setLoading(false);
