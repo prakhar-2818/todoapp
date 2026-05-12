@@ -23,21 +23,21 @@ function App() {
   };
 
   const loadTodos = async () => {
-    const result = await axios.get("http://localhost:5000/getTodos");
+    const result = await axios.get("https://todoapp-backend-w7ki.onrender.com");
     setTodos(result.data);
   };
 
   const deleteTodo = async (id) => {
     setDeletingId(id);
     setTimeout(async () => {
-      await axios.delete(`http://localhost:5000/deleteTodo/${id}`);
+      await axios.delete(`https://todoapp-backend-w7ki.onrender.com/${id}`);
       await loadTodos();
       setDeletingId(null);
     }, 320);
   };
 
   const updateTodo = async (id, completed) => {
-    await axios.put(`http://localhost:5000/updateTodo/${id}`, { completed: !completed });
+    await axios.put(`https://todoapp-backend-w7ki.onrender.com/${id}`, { completed: !completed });
     loadTodos();
   };
 
