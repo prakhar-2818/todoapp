@@ -18,7 +18,7 @@ mongoose.connect(process.env.MONGO_URL)
 
 const todoRoutes = require("./routes/todoRoutes");
 
-app.use("/", todoRoutes);
+app.use("/api/tasks", todoRoutes);
 
 const PORT = process.env.PORT || 5000;
 
