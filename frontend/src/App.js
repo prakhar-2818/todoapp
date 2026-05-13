@@ -38,14 +38,15 @@ function App() {
   };
 
   const updateTodo = async (id, completed) => {
+    if (togglingId === id) return;
     setTogglingId(id);
-    // Optimistic update so UI responds instantly on mobile
+    // Optimistic update — UI responds instantly
     setTodos(prev =>
       prev.map(t => t._id === id ? { ...t, completed: !completed } : t)
     );
     try {
       await axios.put(`https://todoapp-backend-w7ki.onrender.com/api/tasks/${id}`, { completed: !completed });
-      await loadTodos(); // sync with server to confirm
+      await loadTodos();
     } catch (e) {
       // Revert on failure
       setTodos(prev =>
@@ -238,11 +239,15 @@ function App() {
               {/* Left accent */}
               <div className="card-accent" />
 
+              {/* Toggle button — onPointerDown fires instantly on touch, no 300ms delay */}
               <button
                 className={`circle${todo.completed ? " ticked" : ""}`}
-                onClick={() => updateTodo(todo._id, todo.completed)}
-                disabled={togglingId === todo._id}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  updateTodo(todo._id, todo.completed);
+                }}
                 aria-label="Toggle"
+                style={{ touchAction: "manipulation" }}
               >
                 {todo.completed && (
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5">
@@ -257,7 +262,16 @@ function App() {
                 {todo.completed ? "Done" : "Open"}
               </span>
 
-              <button className="del-btn" onClick={() => deleteTodo(todo._id)} aria-label="Delete">
+              {/* Delete button — onPointerDown for mobile */}
+              <button
+                className="del-btn"
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  deleteTodo(todo._id);
+                }}
+                aria-label="Delete"
+                style={{ touchAction: "manipulation" }}
+              >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="3 6 5 6 21 6"/>
                   <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
@@ -273,7 +287,6 @@ function App() {
 }
 
 export default App;
-
 
 
 
