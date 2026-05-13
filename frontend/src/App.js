@@ -2,17 +2,22 @@ import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import "./App.css";
 
+const API = "https://todoapp-backend-w7ki.onrender.com/api/tasks";
+
 function App() {
   const [title, setTitle] = useState("");
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
-  const [togglingId, setTogglingId] = useState(null);
   const inputRef = useRef(null);
 
   const loadTodos = async () => {
-    const result = await axios.get("https://todoapp-backend-w7ki.onrender.com/api/tasks");
-    setTodos(result.data);
+    try {
+      const res = await axios.get(API);
+      setTodos(res.data);
+    } catch (e) {
+      console.error("loadTodos failed", e);
+    }
   };
 
   const addTodo = async () => {
@@ -22,39 +27,50 @@ function App() {
       return;
     }
     setLoading(true);
-    await axios.post("https://todoapp-backend-w7ki.onrender.com/api/tasks", { title });
-    setTitle("");
-    await loadTodos();
-    setLoading(false);
+    try {
+      await axios.post(API, { title });
+      setTitle("");
+      await loadTodos();
+    } catch (e) {
+      console.error("addTodo failed", e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const deleteTodo = async (id) => {
     setDeletingId(id);
     setTimeout(async () => {
-      await axios.delete(`https://todoapp-backend-w7ki.onrender.com/api/tasks/${id}`);
-      await loadTodos();
-      setDeletingId(null);
+      try {
+        await axios.delete(`${API}/${id}`);
+        await loadTodos();
+      } catch (e) {
+        console.error("deleteTodo failed", e);
+      } finally {
+        setDeletingId(null);
+      }
     }, 320);
   };
 
-  const updateTodo = async (id, completed) => {
-    if (togglingId === id) return;
-    setTogglingId(id);
-    // Optimistic update — UI responds instantly
+  const updateTodo = async (id, currentCompleted) => {
+    const newCompleted = !currentCompleted;
+
+    // 1. Update UI immediately — no waiting for network
     setTodos(prev =>
-      prev.map(t => t._id === id ? { ...t, completed: !completed } : t)
+      prev.map(t => t._id === id ? { ...t, completed: newCompleted } : t)
     );
+
+    // 2. Persist to backend in background
     try {
-      await axios.put(`https://todoapp-backend-w7ki.onrender.com/api/tasks/${id}`, { completed: !completed });
-      await loadTodos();
+      await axios.put(`${API}/${id}`, { completed: newCompleted });
     } catch (e) {
-      // Revert on failure
+      console.error("updateTodo failed", e);
+      // Revert if backend call failed
       setTodos(prev =>
-        prev.map(t => t._id === id ? { ...t, completed } : t)
+        prev.map(t => t._id === id ? { ...t, completed: currentCompleted } : t)
       );
-    } finally {
-      setTogglingId(null);
     }
+    // NOTE: No loadTodos() here — that was overwriting the optimistic state
   };
 
   const handleKeyDown = (e) => {
@@ -236,18 +252,12 @@ function App() {
               className={`card${todo.completed ? " done" : ""}${deletingId === todo._id ? " exit" : ""}`}
               style={{ animationDelay: `${i * 0.05}s` }}
             >
-              {/* Left accent */}
               <div className="card-accent" />
 
-              {/* Toggle button — onPointerDown fires instantly on touch, no 300ms delay */}
               <button
                 className={`circle${todo.completed ? " ticked" : ""}`}
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  updateTodo(todo._id, todo.completed);
-                }}
+                onClick={() => updateTodo(todo._id, todo.completed)}
                 aria-label="Toggle"
-                style={{ touchAction: "manipulation" }}
               >
                 {todo.completed && (
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5">
@@ -262,16 +272,7 @@ function App() {
                 {todo.completed ? "Done" : "Open"}
               </span>
 
-              {/* Delete button — onPointerDown for mobile */}
-              <button
-                className="del-btn"
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  deleteTodo(todo._id);
-                }}
-                aria-label="Delete"
-                style={{ touchAction: "manipulation" }}
-              >
+              <button className="del-btn" onClick={() => deleteTodo(todo._id)} aria-label="Delete">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="3 6 5 6 21 6"/>
                   <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
