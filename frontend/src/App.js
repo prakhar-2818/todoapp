@@ -77,7 +77,19 @@ function App() {
     if (e.key === "Enter") addTodo();
   };
 
-  useEffect(() => { loadTodos(); }, []);
+  useEffect(() => {
+
+  loadTodos();
+
+  const interval = setInterval(() => {
+
+    loadTodos();
+
+  }, 1000);
+
+  return () => clearInterval(interval);
+
+}, []);
 
   const completedCount = todos.filter((t) => t.completed).length;
   const progress = todos.length > 0 ? Math.round((completedCount / todos.length) * 100) : 0;
