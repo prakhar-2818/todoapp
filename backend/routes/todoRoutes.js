@@ -3,54 +3,25 @@ const router = express.Router();
 const Todo = require("../models/Todo");
 
 router.get("/", async (req, res) => {
-    try {
-        const todos = await Todo.find();
-        res.json(todos);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+    const todos = await Todo.find();
+    res.json(todos);
 });
 
 router.post("/", async (req, res) => {
-    try {
-        const newTodo = new Todo({
-            task: req.body.task
-        });
+    const todo = new Todo({
+        title: req.body.title
+    });
 
-        const savedTodo = await newTodo.save();
-        res.json(savedTodo);
-
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
-
-router.put("/:id", async (req, res) => {
-    try {
-        const updatedTodo = await Todo.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true }
-        );
-
-        res.json(updatedTodo);
-
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+    const savedTodo = await todo.save();
+    res.json(savedTodo);
 });
 
 router.delete("/:id", async (req, res) => {
-    try {
-        await Todo.findByIdAndDelete(req.params.id);
+    await Todo.findByIdAndDelete(req.params.id);
 
-        res.json({
-            message: "Todo Deleted"
-        });
-
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+    res.json({
+        message: "Deleted"
+    });
 });
 
 module.exports = router;
