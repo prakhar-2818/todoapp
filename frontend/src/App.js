@@ -49,7 +49,7 @@ function App() {
       } finally {
         setDeletingId(null);
       }
-    }, 320);
+    }, 100);
   };
 
   const updateTodo = async (id, currentCompleted) => {
