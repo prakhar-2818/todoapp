@@ -16,28 +16,28 @@ function App() {
       return;
     }
     setLoading(true);
-    await axios.post("https://todoapp-backend-w7ki.onrender.com", { title });
+    await axios.post("https://todoapp-backend-w7ki.onrender.com/api/tasks", { title });
     setTitle("");
     await loadTodos();
     setLoading(false);
   };
 
   const loadTodos = async () => {
-    const result = await axios.get("https://todoapp-backend-w7ki.onrender.com");
+    const result = await axios.get("https://todoapp-backend-w7ki.onrender.com/api/tasks");
     setTodos(result.data);
   };
 
   const deleteTodo = async (id) => {
     setDeletingId(id);
     setTimeout(async () => {
-      await axios.delete(`https://todoapp-backend-w7ki.onrender.com/${id}`);
+      await axios.delete(`https://todoapp-backend-w7ki.onrender.com/api/tasks/${id}`);
       await loadTodos();
       setDeletingId(null);
     }, 320);
   };
 
   const updateTodo = async (id, completed) => {
-    await axios.put(`https://todoapp-backend-w7ki.onrender.com/${id}`, { completed: !completed });
+    await axios.put(`https://todoapp-backend-w7ki.onrender.com/api/tasks/${id}`, { completed: !completed });
     loadTodos();
   };
 
