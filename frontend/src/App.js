@@ -20,23 +20,59 @@ function App() {
     }
   };
 
-  const addTodo = async () => {
-    if (title.trim() === "") {
-      inputRef.current?.classList.add("shake");
-      setTimeout(() => inputRef.current?.classList.remove("shake"), 400);
-      return;
-    }
-    setLoading(true);
-    try {
-      await axios.post(API, { title });
-      setTitle("");
-      await loadTodos();
-    } catch (e) {
-      console.error("addTodo failed", e);
-    } finally {
-      setLoading(false);
-    }
+ const addTodo = async () => {
+
+  if (title.trim() === "") {
+    inputRef.current?.classList.add("shake");
+    setTimeout(() => inputRef.current?.classList.remove("shake"), 400);
+    return;
+  }
+
+  setLoading(true);
+
+  const tempTodo = {
+    _id: Date.now().toString(),
+    title,
+    completed: false
   };
+
+  // Instant UI update
+  setTodos(prev => [tempTodo, ...prev]);
+
+  const oldTitle = title;
+  setTitle("");
+
+  try {
+
+    const res = await axios.post(API, {
+      title: oldTitle
+    });
+
+    // Replace temp todo with real DB todo
+    setTodos(prev =>
+      prev.map(t =>
+        t._id === tempTodo._id ? res.data : t
+      )
+    );
+
+  } catch (e) {
+
+    console.error("addTodo failed", e);
+
+    // Revert if failed
+    setTodos(prev =>
+      prev.filter(t => t._id !== tempTodo._id)
+    );
+
+    setTitle(oldTitle);
+
+  } finally {
+
+    setLoading(false);
+
+  }
+
+};
 
   const deleteTodo = async (id) => {
     setDeletingId(id);
