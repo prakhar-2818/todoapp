@@ -16,6 +16,32 @@ router.post("/", async (req, res) => {
     res.json(savedTodo);
 });
 
+router.put("/:id", async (req, res) => {
+
+    try {
+
+        const updatedTodo = await Todo.findByIdAndUpdate(
+            req.params.id,
+            {
+                completed: req.body.completed
+            },
+            {
+                new: true
+            }
+        );
+
+        res.json(updatedTodo);
+
+    } catch (err) {
+
+        res.status(500).json({
+            message: err.message
+        });
+
+    }
+
+});
+
 router.delete("/:id", async (req, res) => {
     await Todo.findByIdAndDelete(req.params.id);
 
